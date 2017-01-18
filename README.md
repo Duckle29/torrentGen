@@ -9,10 +9,11 @@ the torrents / magnetURIs
 * Python FeedGenerator
 * pytz
 
-Install then with these commands:
+Install them with these commands:
 
-most linux systems
+debian based linux systems
 
+    sudo apt-get install py
     pip3 install feedgen pytz
 
 if that doesn't work try removing the 3 from pip
@@ -30,3 +31,5 @@ for the torrent seeding with it's home in /var/lib/deluge,
 and have an apache server running with web root at /var/www/html/
 
 It's then intended to run check.py periodically with a cronjob.
+
+The script is what is running http://flipflapflop.top/octopi
