@@ -5,12 +5,17 @@ the torrents / magnetURIs
 
 # Requirements
 
-* python FeedGenerator
+* Python 3
+* Python FeedGenerator
 * pytz
 
 Install then with these commands:
 
-    pip install feedgen pytz
+most linux systems
+
+    pip3 install feedgen pytz
+
+if that doesn't work try removing the 3 from pip
 
 # Important note
 This script was made for a specific purpose, and thus some of the code is rather specific to that use.
