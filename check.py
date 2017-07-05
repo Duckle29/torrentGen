@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
+import re
 from urllib.request import urlopen
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
 from urllib.parse import urlencode
 from py3bencode import bdecode
 from py3bencode import bencode
-from os.path import basename
 from os.path import isfile
 from os.path import isdir
 from os import mkdir
@@ -24,6 +24,7 @@ version_pickle = 'lastVersion.p' # The name of the file used to save the last kn
 feedGen_pickle = 'feedgen.p'     # The name of the file used to save the feed generator object
 
 file_location    = '/var/lib/deluge/torrents/'           # Location you want to store the file to be torrented in
+script_location  = '/var/lib/deluge/autotorrent/octopi/' # Location of the script. Add a trailing /!
 torrent_location = '/var/lib/deluge/autoadd/'            # Location of the .torrent file
 maglink_location = '/var/www/html/octopi/magnetLinks/'   # Location of the .txt file that holds the magnet link
 
@@ -54,7 +55,8 @@ else:
 
 response = urlopen('https://octopi.octoprint.org/latest')
 latestURI = response.geturl()
-filename = basename(latestURI)
+searchObj = re.search(r'(octopi\-\w+\-\w+\-\d+\.\d+\.\d+\.zip)', latestURI, re.I)
+filename = searchObj.group(1)
 
 versionBlob = filename.split('-')[-1].split('.')
 versionBlob.pop()
@@ -63,10 +65,10 @@ version = int(''.join(versionBlob))
 if version > lastVersion:
     print("New version found. Downloading it and making a torrent for it.\n")
     localFile, headers = urlretrieve(latestURI, file_location + filename)
-    system('./py3createtorrent.py -o ./tempTorrentDir ' + localFile + trackers)
+    system('/usr/bin/python3 {}py3createtorrent.py -o {}tempTorrentDir '.format(script_location, script_location) + localFile + trackers)
 
     # Calculating the magnet link and storing it in a file
-    torrent = open('./tempTorrentDir/' + filename + '.torrent', 'rb').read()
+    torrent = open('{}tempTorrentDir/'.format(script_location) + filename + '.torrent', 'rb').read()
     metadata = bdecode(torrent)
 
     hashcontents = bencode(metadata['info'])
@@ -81,7 +83,7 @@ if version > lastVersion:
         file.write(magneturi + '\n')
 
     # Magnet has been calculated, move torrent to autoadd folder
-    rename('./tempTorrentDir/' + filename + '.torrent', torrent_location + filename + '.torrent')
+    rename('{}tempTorrentDir/'.format(script_location) + filename + '.torrent', torrent_location + filename + '.torrent')
     # Generate an RSS entry
     if isfile(pickle_dir + '/' + feedGen_pickle):
         fg = pickle.load(open(pickle_dir + '/' + feedGen_pickle, 'rb'))
