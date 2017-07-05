@@ -23,10 +23,11 @@ pickle_dir     = 'glass_jar'       # The name of the dir to store pickles in
 version_pickle = 'lastVersion.p' # The name of the file used to save the last known version
 feedGen_pickle = 'feedgen.p'     # The name of the file used to save the feed generator object
 
-file_location    = '/var/lib/deluge/torrents/'           # Location you want to store the file to be torrented in
-script_location  = '/var/lib/deluge/autotorrent/octopi/' # Location of the script. Add a trailing /!
-torrent_location = '/var/lib/deluge/autoadd/'            # Location of the .torrent file
-maglink_location = '/var/www/html/octopi/magnetLinks/'   # Location of the .txt file that holds the magnet link
+file_regex       = r'(octopi\-\w+\-\w+\-\d+\.\d+\.\d+\.zip)'     # Regex to find the file to download and torrent
+file_location    = '/var/lib/deluge/torrents/'                   # Location you want to store the file to be torrented in
+script_location  = '/var/lib/deluge/autotorrent/octopi/'         # Location of the script. Add a trailing slash!
+torrent_location = '/var/lib/deluge/autoadd/'                    # Location of the .torrent file
+maglink_location = '/var/www/html/octopi/magnetLinks/'           # Location of the .txt file that holds the magnet link
 
 # A string of first the main tracker, followed by any backup trackers you want. Remember to have a space infront of each tracker!
 trackers = (' udp://tracker.coppersurfer.tk:6969'
@@ -55,7 +56,7 @@ else:
 
 response = urlopen('https://octopi.octoprint.org/latest')
 latestURI = response.geturl()
-searchObj = re.search(r'(octopi\-\w+\-\w+\-\d+\.\d+\.\d+\.zip)', latestURI, re.I)
+searchObj = re.search(file_regex, latestURI, re.I)
 filename = searchObj.group(1)
 
 versionBlob = filename.split('-')[-1].split('.')
