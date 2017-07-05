@@ -13,7 +13,7 @@ Install them with these commands:
 
 debian based linux systems
 
-    sudo apt-get install py
+    sudo apt-get install python3
     pip3 install feedgen pytz
 
 if that doesn't work try removing the 3 from pip
@@ -21,12 +21,12 @@ if that doesn't work try removing the 3 from pip
 # Important note
 This script was made for a specific purpose, and thus some of the code is rather specific to that use.
 
-The main thing here is the version checking. It relies on a url to a file (https://urltofile/filename-0.0.0.zip)
-The code relies on a dash in front of a dot seperated version, with a file extension.
-If you wish to use this code for your own needs. You will probably have to tweak the version checking.
+The script does a regex for octopi-anyword-anyword-numbers.numbers.numbers.zip
+It relies on the filename to end in a version, in the format 0.0.0.zip, as it strips the dots and the "zip" away, 
+and gets an integer from that, and hence version 0.13.0.zip = 130, and version 0.14.1.zip = 141, etc.
 
 ## Usage
-Setup the configuration variables. The included ones assume you are using deluged
+Setup the configuration variables. The included ones assume you are using deluged with autotorrent
 for the torrent seeding with it's home in /var/lib/deluge,
 and have an apache server running with web root at /var/www/html/
 
