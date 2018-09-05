@@ -8,6 +8,7 @@ the torrents / magnetURIs
 * Python 3
 * Python FeedGenerator
 * pytz
+* [py3createtorrent](https://py3createtorrent.readthedocs.io/en/latest/user.html#installation)
 
 Install them with these commands:
 
