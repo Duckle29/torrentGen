@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 import re
-from urllib.request import urlopen
-from urllib.request import urlretrieve
-from urllib.parse import urlparse
-from urllib.parse import urlencode
-from py3bencode import bdecode
-from py3bencode import bencode
-from os.path import isfile
-from os.path import isdir
-from os import mkdir
-from os import system
-from os import rename
+from urllib.request import urlopen, urlretrieve
+from urllib.parse import urlparse, urlencode
+from py3bencode import bdecode, bencode
+from os.path import isfile, isdir
+from os import system, mkdir, rename
+from shutil import copy
 import pickle
 import hashlib
 import base64
@@ -25,9 +20,9 @@ feedGen_pickle = 'feedgen.p'     # The name of the file used to save the feed ge
 
 file_regex       = r'(octopi\-\w+\-\w+\-\d+\.\d+\.\d+\.zip)'     # Regex to find the file to download and torrent
 file_location    = '/var/lib/deluge/torrents/'                   # Location you want to store the file to be torrented in
-script_location  = '/var/lib/deluge/autotorrent/octopi/'         # Location of the script. Add a trailing slash!
+script_location  = '/var/lib/deluge/torrentGen/octopi/'          # Location of the script. Add a trailing slash!
 torrent_location = '/var/lib/deluge/autoadd/'                    # Location of the .torrent file
-maglink_location = '/var/www/html/octopi/magnetLinks/'           # Location of the .txt file that holds the magnet link
+webroot 	 = '/var/www/autotorrent.mikkel.cc/octopi/' 	 # Loation of the root web folder to host torrrents
 
 # A string of first the main tracker, followed by any backup trackers you want. Remember to have a space infront of each tracker!
 trackers = (' udp://tracker.coppersurfer.tk:6969'
@@ -35,15 +30,21 @@ trackers = (' udp://tracker.coppersurfer.tk:6969'
             ' udp://tracker.leechers-paradise.org:6969')
 
 RSS_feed_title       = 'RSS feed for octopi torrents'
-RSS_feed_link        = {'href':'http://flipflapflop.top/octopi/rss.xml','rel':'self'}
+RSS_feed_link        = {'href':'https://autotorrent.mikkel.cc/octopi/rss.xml','rel':'self'}
 RSS_feed_description = 'An RSS feed for torrents of octopi images. Mainly to be used for automatic spread of initial seeders'
-RSS_feed_base_URL    = 'http://flipflapflop.top/octopi/'
-RSS_XML_location     = '/var/www/html/octopi/rss.xml'
+RSS_feed_base_URL    = 'https://autotorrent.mikkel.cc/octopi/'
+RSS_XML_location     = '/var/www/autotorrent.mikkel.cc/octopi/rss.xml'
 #END CONFIG
 
 # Create script specific directories
 if not isdir(pickle_dir):
     mkdir(pickle_dir)
+
+if not isdir(webroot + 'magnetLinks'):
+    mkdir(webroot + 'magnetLinks')
+
+if not isdir(webroot + 'torrents'):
+    mkdir(webroot + 'torrents')
 
 if not isdir('tempTorrentDir'):
     mkdir('tempTorrentDir')
@@ -69,7 +70,7 @@ if version > lastVersion:
     system('/usr/bin/python3 {}py3createtorrent.py -o {}tempTorrentDir '.format(script_location, script_location) + localFile + trackers)
 
     # Calculating the magnet link and storing it in a file
-    torrent = open('{}tempTorrentDir/'.format(script_location) + filename + '.torrent', 'rb').read()
+    torrent = open(script_location + 'tempTorrentDir/' + filename + '.torrent', 'rb').read()
     metadata = bdecode(torrent)
 
     hashcontents = bencode(metadata['info'])
@@ -80,14 +81,19 @@ if version > lastVersion:
               'xl': metadata['info']['length']}
     paramstr = urlencode(params)
     magneturi = 'magnet:?xt=urn:btih:{}&{}'.format(digest,paramstr)
-    with open(maglink_location + filename + '.txt', 'w') as file:
+    with open(webroot + 'magnetLinks/' + filename + '.txt', 'w') as file:
         file.write(magneturi + '\n')
 
-    # Magnet has been calculated, move torrent to autoadd folder
-    rename('{}tempTorrentDir/'.format(script_location) + filename + '.torrent', torrent_location + filename + '.torrent')
+    # Magnet has been calculated, put a copy of the torrent in the web root 
+    copy(script_location + 'tempTorrentDir/' + filename + '.torrent', webroot + 'torrents/')
+
+    # move torrent to autoadd folder
+    rename(script_location + 'tempTorrentDir/' + filename + '.torrent', torrent_location + filename + '.torrent')
+
     # Generate an RSS entry
     if isfile(pickle_dir + '/' + feedGen_pickle):
         fg = pickle.load(open(pickle_dir + '/' + feedGen_pickle, 'rb'))
+
     else: # First time this is run, we have to set up the feed.
         fg = FeedGenerator()
         fg.title(RSS_feed_title)

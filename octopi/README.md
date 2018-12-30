@@ -12,12 +12,10 @@ the torrents / magnetURIs
 
 Install them with these commands:
 
-debian based linux systems
+ubuntu based linux systems
 
-    sudo apt-get install python3
+    sudo apt install python3 python3-pip
     pip3 install feedgen pytz
-
-if that doesn't work try removing the 3 from pip
 
 # Important note
 This script was made for a specific purpose, and thus some of the code is rather specific to that use.
@@ -29,8 +27,8 @@ and gets an integer from that, and hence version 0.13.0.zip = 130, and version 0
 ## Usage
 Setup the configuration variables. The included ones assume you are using deluged with autotorrent
 for the torrent seeding with it's home in /var/lib/deluge,
-and have an apache server running with web root at /var/www/html/
+and have a web server running with web root at /var/www/html/
 
 It's then intended to run check.py periodically with a cronjob.
 
-The script is what is running http://flipflapflop.top/octopi
+The script is what is running autotorrent.mikkel.cc
