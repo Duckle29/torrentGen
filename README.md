@@ -31,4 +31,4 @@ and have a web server running with web root at /var/www/html/
 
 It's then intended to run check.py periodically with a cronjob.
 
-The script is what is running autotorrent.mikkel.cc
+The script is what is running https://autotorrent.mikkel.cc
