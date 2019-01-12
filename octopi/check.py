@@ -38,7 +38,7 @@ RSS_feed_base_URL    = 'https://autotorrent.mikkel.cc/octopi/'
 RSS_XML_location     = '/var/www/autotorrent.mikkel.cc/octopi/rss.xml'
 # END CONFIG
 
-script_location = abspath(__file__)
+script_location = abspath(__file__)[0:-len(__file__)]
 
 # Create script specific directories
 if not isdir(pickle_dir):
