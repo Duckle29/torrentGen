@@ -27,14 +27,18 @@ webroot          = '/var/www/autotorrent.mikkel.cc/octopi/'    # Location of the
 
 
 # A string of first the main tracker, followed by any backup trackers you want. Remember to have a space infront of each tracker!
-trackers = (' udp://tracker.coppersurfer.tk:6969'
-            ' udp://tracker.opentrackr.org:1337'
-            ' udp://tracker.leechers-paradise.org:6969')
+trackers = (' udp://tracker.internetwarriors.net:1337/announce'
+            ' udp://tracker.leechers-paradise.org:6969/announce'
+            ' udp://tracker.coppersurfer.tk:6969/announce'
+            ' udp://tracker.pirateparty.gr:6969/announce'
+            ' http://explodie.org:6969/announce'
+            ' http://torrent.nwps.ws/announce'
+            ' udp://tracker.cyberia.is:6969/announce')
 
 RSS_feed_title       = 'RSS feed for octopi torrents'
 RSS_feed_link        = {'href': 'https://autotorrent.mikkel.cc/octopi/rss.xml', 'rel': 'self'}
 RSS_feed_description = 'An RSS feed for torrents of octopi images. Mainly to be used for automatic spread of initial seeders'
-RSS_feed_base_URL    = 'https://autotorrent.mikkel.cc/octopi/'
+RSS_feed_base_URL    = 'https://autotorrent.mikkel.cc/octopi/torrents/'
 RSS_XML_location     = '/var/www/autotorrent.mikkel.cc/octopi/rss.xml'
 # END CONFIG
 
