@@ -1,39 +1,44 @@
 #!/usr/bin/env python3
 import re
 import tempfile
+from pathlib import Path
+from subprocess import run
+from os import rename
+from shutil import copy
+from datetime import datetime
+
 from urllib.request import urlopen, urlretrieve
 from urllib.parse import urlparse, urlencode
 from py3bencode import bdecode, bencode
-from os.path import isfile, isdir, abspath
-from os import system, mkdir, rename
-from shutil import copy
+
 import pickle
 import hashlib
 import base64
 from feedgen.feed import FeedGenerator
-from datetime import datetime
 import pytz
 
 
 # CONFIG
-pickle_dir     = 'glass_jar'      # The name of the dir to store pickles in
-version_pickle = 'lastVersion.p'  # The name of the file used to save the last known version
-feedGen_pickle = 'feedgen.p'      # The name of the file used to save the feed generator object
+pickle_dir     = Path('glass_jar')              # The name of the dir to store pickles in
+version_pickle = pickle_dir / 'lastVersion.p'   # The name of the file used to save the last known version
+feedGen_pickle = pickle_dir / 'feedgen.p'       # The name of the file used to save the feed generator object
 
-file_regex       = r'(octopi\-\w+\-\w+\-\d+\.\d+\.\d+\.zip)'   # Regex to find the file to download and torrent
-file_location    = '/srv/deluge/torrentGen/torrents/'          # Location you want to store the file to be torrented in
-torrent_location = '/srv/deluge/torrentGen/autoadd/'           # Location of the .torrent file
-webroot          = '/srv/autotorrent.mikkel.cc/octopi/'    # Location of the root web folder to host torrents
+file_regex       = r'(octopi\-\w+\-\w+\-\d+\.\d+\.\d+\.zip)'     # Regex to find the file to download and torrent
+file_location    = Path('/srv/deluge/torrentGen/torrents/')      # Location you want to store the file to be torrented in
+torrent_location = Path('/srv/deluge/torrentGen/autoadd/')       # Location of the .torrent file
+webroot          = Path('/srv/autotorrent.mikkel.cc/octopi/')    # Location of the root web folder to host torrents
 
 
-# A string of first the main tracker, followed by any backup trackers you want. Remember to have a space infront of each tracker!
-trackers = (' udp://tracker.internetwarriors.net:1337/announce'
-            ' udp://tracker.leechers-paradise.org:6969/announce'
-            ' udp://tracker.coppersurfer.tk:6969/announce'
-            ' udp://tracker.pirateparty.gr:6969/announce'
-            ' http://explodie.org:6969/announce'
-            ' http://torrent.nwps.ws/announce'
-            ' udp://tracker.cyberia.is:6969/announce')
+# A tuple of trackers. Main tracker followed by any backup trackers.
+trackers = (
+    'udp://tracker.internetwarriors.net:1337/announce',
+    'udp://tracker.leechers-paradise.org:6969/announce',
+    'udp://tracker.coppersurfer.tk:6969/announce',
+    'udp://tracker.pirateparty.gr:6969/announce',
+    'http://explodie.org:6969/announce',
+    'http://torrent.nwps.ws/announce',
+    'udp://tracker.cyberia.is:6969/announce'
+)
 
 RSS_feed_title       = 'RSS feed for octopi torrents'
 RSS_feed_link        = {'href': 'https://autotorrent.mikkel.cc/octopi/rss.xml', 'rel': 'self'}
@@ -42,33 +47,36 @@ RSS_feed_base_URL    = 'https://autotorrent.mikkel.cc/octopi/torrents/'
 RSS_XML_location     = '/var/www/autotorrent.mikkel.cc/octopi/rss.xml'
 # END CONFIG
 
-script_location = abspath(__file__)[0:-len(__file__)]
+script_location = Path(__file__).resolve().parent
+magnet_web = webroot / 'magnetLinks'
+torrent_web = webroot / 'torrents'
+
 if not script_location:
-    script_location = '.'
+    raise FileNotFoundError("Can't find location of current script")
 
 # Create script specific directories
-if not isdir(pickle_dir):
-    mkdir(pickle_dir)
+if not pickle_dir.is_dir():
+    pickle_dir.mkdir()
 
-if not isdir(file_location):
-    mkdir(file_location)
+if not file_location.is_dir():
+    file_location.mkdir()
 
-if not isdir(torrent_location):
-    mkdir(torrent_location)
+if not torrent_location.is_dir():
+    torrent_location.mkdir()
 
-if not isdir(webroot):
-    mkdir(webroot)
+if not webroot.is_dir():
+    webroot.mkdir()
 
-if not isdir(webroot + 'magnetLinks'):
-    mkdir(webroot + 'magnetLinks')
+if not magnet_web.is_dir():
+    magnet_web.mkdir()
 
-if not isdir(webroot + 'torrents'):
-    mkdir(webroot + 'torrents')
+if not torrent_web.is_dir():
+    torrent_web.mkdir()
 
 # End
 
-if isfile(pickle_dir + '/' + version_pickle):
-    lastVersion = pickle.load(open(pickle_dir + '/' + version_pickle, 'rb'))
+if version_pickle.is_file():
+    lastVersion = pickle.load(version_pickle.open('rb'))
 else:
     lastVersion = 0
 
@@ -85,7 +93,14 @@ if version > lastVersion:
     with tempfile.TemporaryDirectory() as tempDir:
         print("New version found. Downloading it and making a torrent for it.\n")
         localFile, headers = urlretrieve(latestURI, file_location + filename)
-        system('/usr/bin/python3 {}/py3createtorrent.py -o {} {}{}'.format(script_location, tempDir, localFile, trackers))
+        command = [
+            '/usr/bin/python3',
+            '{}/py3createtorrent.py'.format(script_location),
+            '-o', tempDir,
+            localFile,
+            ' '.join(trackers)
+        ]
+        run(command)
 
         # Calculating the magnet link and storing it in a file
         torrent = open(tempDir + '/' + filename + '.torrent', 'rb').read()
@@ -109,8 +124,8 @@ if version > lastVersion:
         rename(tempDir + '/' + filename + '.torrent', torrent_location + filename + '.torrent')
 
     # Generate an RSS entry
-    if isfile(pickle_dir + '/' + feedGen_pickle):
-        fg = pickle.load(open(pickle_dir + '/' + feedGen_pickle, 'rb'))
+    if feedGen_pickle.is_file():
+        fg = pickle.load(feedGen_pickle.open('rb'))
 
     else:  # First time this is run, we have to set up the feed.
         fg = FeedGenerator()
@@ -129,11 +144,11 @@ if version > lastVersion:
 
     fg.rss_file(RSS_XML_location)
 
-    pickle.dump(fg, open(pickle_dir + '/' + feedGen_pickle, 'wb'))
+    pickle.dump(fg, feedGen_pickle.open('wb'))
 
     lastVersion = version
 else:
     print("No new version found. Skipping")
 
 
-pickle.dump(lastVersion, open(pickle_dir + '/' + version_pickle, 'wb'))
+pickle.dump(lastVersion, version_pickle.open('wb'))
