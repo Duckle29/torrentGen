@@ -23,7 +23,7 @@ feedGen_pickle = 'feedgen.p'      # The name of the file used to save the feed g
 file_regex       = r'(octopi\-\w+\-\w+\-\d+\.\d+\.\d+\.zip)'   # Regex to find the file to download and torrent
 file_location    = '/srv/deluge/torrentGen/torrents/'          # Location you want to store the file to be torrented in
 torrent_location = '/srv/deluge/torrentGen/autoadd/'           # Location of the .torrent file
-webroot          = '/var/www/autotorrent.mikkel.cc/octopi/'    # Location of the root web folder to host torrents
+webroot          = '/srv/autotorrent.mikkel.cc/octopi/'    # Location of the root web folder to host torrents
 
 
 # A string of first the main tracker, followed by any backup trackers you want. Remember to have a space infront of each tracker!
