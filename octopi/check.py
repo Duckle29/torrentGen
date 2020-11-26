@@ -30,7 +30,7 @@ webroot          = Path('/srv/autotorrent.mikkel.cc/octopi/')    # Location of t
 
 
 # A list of trackers. Main tracker followed by any backup trackers.
-trackers = []
+trackers = [
     'udp://tracker.internetwarriors.net:1337/announce',
     'udp://tracker.leechers-paradise.org:6969/announce',
     'udp://tracker.coppersurfer.tk:6969/announce',
