@@ -118,10 +118,10 @@ if version > lastVersion:
             file.write(magneturi + '\n')
 
         # Magnet has been calculated, put a copy of the torrent in the web root
-        copy(tempDir / (filename + '.torrent'), webroot + 'torrents/')
+        copy(tempDir + filename + '.torrent', webroot + 'torrents/')
 
         # move torrent to autoadd folder
-        rename(tempDir / (filename + '.torrent'), torrent_location / (filename + '.torrent'))
+        rename(tempDir + filename + '.torrent', torrent_location / (filename + '.torrent'))
 
     # Generate an RSS entry
     if feedGen_pickle.is_file():
