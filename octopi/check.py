@@ -92,7 +92,7 @@ version = int(''.join(versionBlob))
 if version > lastVersion:
     with tempfile.TemporaryDirectory() as tempDir:
         print("New version found. Downloading it and making a torrent for it.\n")
-        localFile, headers = urlretrieve(latestURI, file_location + filename)
+        localFile, headers = urlretrieve(latestURI, file_location / filename)
         command = [
             '/usr/bin/python3',
             '{}/py3createtorrent.py'.format(script_location),
@@ -103,7 +103,7 @@ if version > lastVersion:
         run(command)
 
         # Calculating the magnet link and storing it in a file
-        torrent = open(tempDir + '/' + filename + '.torrent', 'rb').read()
+        torrent = (tempDir / (filename + '.torrent')).open('rb').read()
         metadata = bdecode(torrent)
 
         hashcontents = bencode(metadata['info'])
@@ -114,14 +114,14 @@ if version > lastVersion:
                   'xl': metadata['info']['length']}
         paramstr = urlencode(params)
         magneturi = 'magnet:?xt=urn:btih:{}&{}'.format(digest,paramstr)
-        with open(webroot + 'magnetLinks/' + filename + '.txt', 'w') as file:
+        with (webroot / 'magnetLinks' / (filename + '.txt')).open('w') as file:
             file.write(magneturi + '\n')
 
         # Magnet has been calculated, put a copy of the torrent in the web root
-        copy(tempDir + '/' + filename + '.torrent', webroot + 'torrents/')
+        copy(tempDir / (filename + '.torrent'), webroot + 'torrents/')
 
         # move torrent to autoadd folder
-        rename(tempDir + '/' + filename + '.torrent', torrent_location + filename + '.torrent')
+        rename(tempDir / (filename + '.torrent'), torrent_location / (filename + '.torrent'))
 
     # Generate an RSS entry
     if feedGen_pickle.is_file():
