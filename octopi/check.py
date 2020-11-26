@@ -29,8 +29,8 @@ torrent_location = Path('/srv/deluge/torrentGen/autoadd/')       # Location of t
 webroot          = Path('/srv/autotorrent.mikkel.cc/octopi/')    # Location of the root web folder to host torrents
 
 
-# A tuple of trackers. Main tracker followed by any backup trackers.
-trackers = (
+# A list of trackers. Main tracker followed by any backup trackers.
+trackers = []
     'udp://tracker.internetwarriors.net:1337/announce',
     'udp://tracker.leechers-paradise.org:6969/announce',
     'udp://tracker.coppersurfer.tk:6969/announce',
@@ -38,13 +38,13 @@ trackers = (
     'http://explodie.org:6969/announce',
     'http://torrent.nwps.ws/announce',
     'udp://tracker.cyberia.is:6969/announce'
-)
+]
 
 RSS_feed_title       = 'RSS feed for octopi torrents'
 RSS_feed_link        = {'href': 'https://autotorrent.mikkel.cc/octopi/rss.xml', 'rel': 'self'}
 RSS_feed_description = 'An RSS feed for torrents of octopi images. Mainly to be used for automatic spread of initial seeders'
 RSS_feed_base_URL    = 'https://autotorrent.mikkel.cc/octopi/torrents/'
-RSS_XML_location     = '/var/www/autotorrent.mikkel.cc/octopi/rss.xml'
+RSS_XML_location     = '/srv/autotorrent.mikkel.cc/octopi/rss.xml'
 # END CONFIG
 
 script_location = Path(__file__).resolve().parent
@@ -98,12 +98,12 @@ if version > lastVersion:
             '{}/py3createtorrent.py'.format(script_location),
             '-o', tempDir,
             localFile,
-            ' '.join(trackers)
-        ]
+        ] + trackers
+
         run(command)
 
         # Calculating the magnet link and storing it in a file
-        torrent = (tempDir / (filename + '.torrent')).open('rb').read()
+        torrent = Path(tempDir + '/' + filename + '.torrent').open('rb').read()
         metadata = bdecode(torrent)
 
         hashcontents = bencode(metadata['info'])
@@ -118,10 +118,10 @@ if version > lastVersion:
             file.write(magneturi + '\n')
 
         # Magnet has been calculated, put a copy of the torrent in the web root
-        copy(tempDir + filename + '.torrent', webroot + 'torrents/')
+        copy(tempDir + '/' + filename + '.torrent', webroot / 'torrents/')
 
         # move torrent to autoadd folder
-        rename(tempDir + filename + '.torrent', torrent_location / (filename + '.torrent'))
+        rename(tempDir + '/' + filename + '.torrent', torrent_location / (filename + '.torrent'))
 
     # Generate an RSS entry
     if feedGen_pickle.is_file():

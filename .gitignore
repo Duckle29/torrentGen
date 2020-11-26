@@ -1,3 +1,4 @@
-*glass_jar*
-*__pycache__*
+glass_jar/
+__pycache__/
 torrents/
+autoadd/
